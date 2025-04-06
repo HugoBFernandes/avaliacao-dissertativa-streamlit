@@ -9,6 +9,8 @@ import fitz  # PyMuPDF
 import streamlit as st
 import pandas as pd
 import tempfile
+import json
+import google.auth
 from typing import Dict
 
 # Google Cloud Vertex AI
@@ -30,7 +32,12 @@ CRITERIOS = {
 # Inicializar Vertex AI
 @st.cache_resource
 def inicializar_vertex():
-    vertexai.init(project=PROJETO_ID, location=LOCALIZACAO)
+    # Carregar chave JSON dos segredos
+    cred_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
+    with open("/tmp/gcloud-key.json", "w") as f:
+      json.dump(cred_json, f)
+    vertexai.init(project=cred_json["project_id"], location=LOCALIZACAO)
     return TextGenerationModel.from_pretrained("text-bison@001")  # Gemini 1.5 substitua aqui se disponível
 
 modelo_ia = inicializar_vertex()
