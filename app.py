@@ -1,8 +1,6 @@
-# Streamlit App: Avaliação Automatizada com Gemini 1.5
-
 # Requisitos:
 # - Python 3
-# - Instalar: streamlit, PyMuPDF, vertexai, google-cloud-aiplatform
+# - Instalar: streamlit, PyMuPDF, google-generativeai, pandas
 
 import os
 import fitz  # PyMuPDF
@@ -12,25 +10,18 @@ import tempfile
 import json
 from typing import Dict
 
-# Google Cloud Vertex AI
-from vertexai.language_models import TextGenerationModel
-import vertexai
+# Google Gemini API
+import google.generativeai as genai
 
 # ---------- CONFIGURAÇÃO POR CHAVE JSON NO STREAMLIT SECRETS ----------
 # Carrega e configura a autenticação via chave JSON no ambiente do Streamlit Cloud
-# Converte o objeto Secrets para um dicionário Python padrão e cria uma cópia mutável
 cred_json = dict(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"]).copy()
-
-# Ajusta a private_key para substituir '\n' literais por quebras de linha reais
 cred_json["private_key"] = cred_json["private_key"].replace("\\n", "\n")
-
-# Escreve as credenciais em um arquivo temporário
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
 with open("/tmp/gcloud-key.json", "w") as f:
     json.dump(cred_json, f)
-
 PROJETO_ID = cred_json["project_id"]
-LOCALIZACAO = "us-central1"  # Ajuste conforme sua região do Vertex AI
+LOCALIZACAO = "us-central1"  # A região não é mais necessária para a API Gemini, mas mantida para referência
 
 # ---------- RUBRICA DE AVALIAÇÃO ----------
 CRITERIOS = {
@@ -41,13 +32,13 @@ CRITERIOS = {
     "Argumentação Crítica": 0.1
 }
 
-# Inicializar Vertex AI
+# Inicializar Gemini API
 @st.cache_resource
-def inicializar_vertex():
-    vertexai.init(project=PROJETO_ID, location=LOCALIZACAO)
-    return TextGenerationModel.from_pretrained("text-bison@001")  # Gemini 1.5 substitua aqui se disponível
+def inicializar_gemini():
+    genai.configure()  # Autenticação via GOOGLE_APPLICATION_CREDENTIALS
+    return genai.GenerativeModel("gemini-1.0-pro")  # Usa o modelo Gemini 1.0 Pro
 
-modelo_ia = inicializar_vertex()
+modelo_ia = inicializar_gemini()
 
 # Extrair texto do PDF
 def extrair_texto_pdf(arquivo) -> str:
@@ -76,12 +67,22 @@ def avaliar_com_gemini(texto: str, rubrica: Dict) -> str:
     - Nota final (0 a 10)
     - Feedback com pontos fortes e sugestões de melhoria
     """
-    resposta = modelo_ia.predict(prompt, temperature=0.2, max_output_tokens=1024)
-    return resposta.text
+    try:
+        resposta = modelo_ia.generate_content(
+            prompt,
+            generation_config={
+                "temperature": 0.2,
+                "max_output_tokens": 1024
+            }
+        )
+        return resposta.text
+    except Exception as e:
+        st.error(f"Erro ao avaliar com Gemini: {str(e)}")
+        return f"Erro: {str(e)}"
 
 # ---------- INTERFACE ----------
 st.title("📚 Avaliação Automatizada de Textos Dissertativos")
-st.markdown("Faça upload de múltiplos arquivos PDF para avaliação automatizada com IA (Google Gemini 1.5).")
+st.markdown("Faça upload de múltiplos arquivos PDF para avaliação automatizada com IA (Google Gemini 1.0 Pro).")
 
 arquivos = st.file_uploader("Selecione os arquivos PDF dos alunos", type="pdf", accept_multiple_files=True)
 
