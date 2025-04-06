@@ -36,7 +36,7 @@ CRITERIOS = {
 @st.cache_resource
 def inicializar_gemini():
     genai.configure()  # Autenticação via GOOGLE_APPLICATION_CREDENTIALS
-    return genai.GenerativeModel("gemini-1.0-pro")  # Usa o modelo Gemini 1.0 Pro
+    return genai.GenerativeModel("gemini-1.5-pro")  # Usa o modelo Gemini 1.5 Pro
 
 modelo_ia = inicializar_gemini()
 
@@ -82,7 +82,7 @@ def avaliar_com_gemini(texto: str, rubrica: Dict) -> str:
 
 # ---------- INTERFACE ----------
 st.title("📚 Avaliação Automatizada de Textos Dissertativos")
-st.markdown("Faça upload de múltiplos arquivos PDF para avaliação automatizada com IA (Google Gemini 1.0 Pro).")
+st.markdown("Faça upload de múltiplos arquivos PDF para avaliação automatizada com IA (Google Gemini 1.5 Pro).")
 
 arquivos = st.file_uploader("Selecione os arquivos PDF dos alunos", type="pdf", accept_multiple_files=True)
 
