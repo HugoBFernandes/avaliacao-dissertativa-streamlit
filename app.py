@@ -22,7 +22,6 @@ cred_json = st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
 with open("/tmp/gcloud-key.json", "w") as f:
     json.dump(cred_json, f)
-
 PROJETO_ID = cred_json["project_id"]
 LOCALIZACAO = "us-central1"  # Ajuste conforme sua região do Vertex AI
 
