@@ -16,7 +16,7 @@ from vertexai.language_models import TextGenerationModel
 import vertexai
 
 # ---------- CONFIGURAÇÕES ----------
-PROJETO_ID = "avaliacao-456000"  # Substituir
+PROJETO_ID = st.secrets["vertex_ai"]["avaliacao-456000"] # Substituir
 LOCALIZACAO = "us-central1"
 
 CRITERIOS = {
