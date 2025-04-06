@@ -10,17 +10,23 @@ import streamlit as st
 import pandas as pd
 import tempfile
 import json
-import google.auth
 from typing import Dict
 
 # Google Cloud Vertex AI
 from vertexai.language_models import TextGenerationModel
 import vertexai
 
-# ---------- CONFIGURAÇÕES ----------
-PROJETO_ID = st.secrets["vertex_ai"]["avaliacao-456000"] # Substituir
-LOCALIZACAO = "us-central1"
+# ---------- CONFIGURAÇÃO POR CHAVE JSON NO STREAMLIT SECRETS ----------
+# Carrega e configura a autenticação via chave JSON no ambiente do Streamlit Cloud
+cred_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
+with open("/tmp/gcloud-key.json", "w") as f:
+    json.dump(cred_json, f)
 
+PROJETO_ID = cred_json["project_id"]
+LOCALIZACAO = "us-central1"  # Ajuste conforme sua região do Vertex AI
+
+# ---------- RUBRICA DE AVALIAÇÃO ----------
 CRITERIOS = {
     "Clareza e Coerência": 0.3,
     "Adequação ao Tema": 0.25,
@@ -32,12 +38,7 @@ CRITERIOS = {
 # Inicializar Vertex AI
 @st.cache_resource
 def inicializar_vertex():
-    # Carregar chave JSON dos segredos
-    cred_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
-    with open("/tmp/gcloud-key.json", "w") as f:
-      json.dump(cred_json, f)
-    vertexai.init(project=cred_json["project_id"], location=LOCALIZACAO)
+    vertexai.init(project=PROJETO_ID, location=LOCALIZACAO)
     return TextGenerationModel.from_pretrained("text-bison@001")  # Gemini 1.5 substitua aqui se disponível
 
 modelo_ia = inicializar_vertex()
