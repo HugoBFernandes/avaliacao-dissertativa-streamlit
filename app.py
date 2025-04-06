@@ -18,7 +18,7 @@ import vertexai
 
 # ---------- CONFIGURAÇÃO POR CHAVE JSON NO STREAMLIT SECRETS ----------
 # Carrega e configura a autenticação via chave JSON no ambiente do Streamlit Cloud
-cred_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+cred_json = st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"]
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/gcloud-key.json"
 with open("/tmp/gcloud-key.json", "w") as f:
     json.dump(cred_json, f)
